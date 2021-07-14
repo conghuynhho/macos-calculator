@@ -109,7 +109,7 @@
     </div>
     <div
       class="button zero number-btn"
-      @click="appendZero"
+      @click="append('0')"
     >
       0
     </div>
@@ -129,103 +129,96 @@
 </template>
 
 <script>
-// const removeStartZero = (stringNumber) =>{
-//   console.log(stringNumber.toString());
-//   if(stringNumber.startsWith("0")){
-//     return removeStartZero(stringNumber.slice(1,stringNumber.length))
-//   }
-//   else{
-//     return stringNumber
-//   }
-// }
+const removeLastZero = (stringNumber) => {
+  const lastIndex = stringNumber.length - 1;
+  if (lastIndex === -1) return stringNumber;
+  if (stringNumber[lastIndex] !== "0") return stringNumber;
+  let isRemove = true;
+
+  for (let i = lastIndex - 1; i > -1; i--) {
+    if (stringNumber[i].search(/[+\-*/]/g) >= 0) break;
+    if (stringNumber[i] !== "0") isRemove = false;
+  }
+
+  return isRemove ? stringNumber.slice(0, lastIndex) : stringNumber;
+};
 
 export default {
   name: "Calculator",
   data() {
     return {
-      operator: '',
       current: "",
-    }
+    };
   },
-  computed:{
-    result: function(){
-      // const operator = this.operator || '+';
-      // const current = this.currentComputed || '0';
-      // const previous = this.previousComputed || '0';
-
-      // return eval(`${previous}${operator}${current}`);
-
-
+  computed: {
+    result: function () {
       const length = this.current.length;
-      console.log(this.current, 'this.current');
-      const output = this.current[length-1].search(/[/*\-+]/g) > -1 ? this.current.slice(0, length-1) : this.current;
-      console.log(output, 'output');
-      console.log(eval(output), 'eval');
+      const output =
+        this.current[length - 1].search(/[/*\-+]/g) > -1
+          ? this.current.slice(0, length - 1)
+          : this.current;
       return eval(output)?.toString() || 0;
     },
   },
-  methods:{
-    clear(){
+  methods: {
+    clear() {
       this.current = "";
-      this.operator = "";
     },
-    sign(){
-      if(this.current && this.current != '0' )
-        this.current = this.current.charAt(0) === "-" ? this.current.slice(1) : `-${this.current}`;
+    sign() {
+      if (this.current && this.current != "0")
+        this.current =
+          this.current.charAt(0) === "-"
+            ? this.current.slice(1)
+            : `-${this.current}`;
     },
-    append(value){
-      this.current = `${this.current}${value}` 
+    append(value) {
+      if (value.search(/\d/g) >= 0) {
+        this.current = removeLastZero(this.current);
+      }
+      this.current = `${this.current}${value}`;
     },
-    appendZero(){
-      if(this.current.search(/\d/g) >= 0) this.append('0');
+    percent() {
+      this.equal();
+      this.current = (+this.current / 100).toString();
     },
-    percent(){
-      this.current = (+this.current/100).toString();
-    },
-    dot(){
+    dot() {
       const input = this.current.split(/[*\-+/]/g);
-      if(input[input.length - 1].indexOf('.') < 0){
-        this.append('.');
+      if (input[input.length - 1].indexOf(".") < 0) {
+        this.append(".");
       }
     },
-    checkCurrent(){
-      this.current = this.current.search(/[*\-+/]/g) >= 0 ? this.result : this.current;
+    checkCurrent() {
+      this.current =
+        this.current.search(/[*\-+/]/g) >= 0 ? this.result : this.current;
     },
-    add(){
+    add() {
       this.checkCurrent();
-      this.operator = '+';
-      this.append('+');
+      this.append("+");
     },
-    minus(){
+    minus() {
       this.checkCurrent();
-      this.operator = '-';
-      this.append('-');
+      this.append("-");
     },
-    divide(){
-      if(this.current){
+    divide() {
+      if (this.current) {
         this.checkCurrent();
-        this.operator = '/';
-        this.append('/');
+        this.append("/");
       }
     },
-    times(){
-      if(this.current){
+    times() {
+      if (this.current) {
         this.checkCurrent();
-        this.operator = '*';
-        this.append('*'); 
+        this.append("*");
       }
     },
-    equal(){
+    equal() {
       this.current = this.result;
-      this.operator = '';
     },
-    
-  }
+  },
 };
 </script>
 
 <style>
-
 .calculator-wrapper {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -244,10 +237,10 @@ export default {
   background: #2b2d2f;
   overflow: hidden;
   border-radius: 5px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-size: 1.5em;
   font-weight: 500;
-
 }
 .calculator-wrapper .calculator-screen {
   grid-column: span 4;
